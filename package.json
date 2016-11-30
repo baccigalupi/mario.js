@@ -1,0 +1,12 @@
+{
+  "name": "mario.js",
+  "version": "0.1.0",
+  "description": "A big mustaches on a small package",
+  "main": "index.js",
+  "scripts": {
+    "test": "open test/runner.html"
+  },
+  "keywords": ["mustache", "small"],
+  "author": "baccigalupi",
+  "license": "MIT"
+}
