@@ -25,11 +25,6 @@ Mario.Scanner.prototype.compile = function compile() {
   while (this.cursor < length) {
     this.processToken();
   }
-  this.addFinishingDisassemly();
-
-  if (this.disassembly.length % 2 === 0) {
-    throw new Error('Mario mismatched tags! You opened a tag, but did not close it.');
-  }
 
   this.compiled = true;
 };
@@ -76,12 +71,6 @@ Mario.Scanner.prototype.delimiter = function delimiter() {
 
 Mario.Scanner.prototype.flipDelimiter = function flipDelimiter() {
   this.delimiterIndex = (this.delimiterIndex + 1) % 2;
-};
-
-Mario.Scanner.prototype.addFinishingDisassemly = function addFinishingDisassemly() {
-  if (this.tags.length && this.tags[this.tags.length - 1].index === this.disassembly.length - 1) {
-    this.disassembly.push('');
-  }
 };
 
 Mario.RenderEngine = function(scanner, view, partials) {

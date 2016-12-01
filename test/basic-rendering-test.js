@@ -5,16 +5,28 @@ it("renders just text", function() {
   expect(Mario.render(text)).toBe(text);
 });
 
-it("renders one tag surrounded by text", function() {
-  var text = "test {{foo}} test";
-  var s = Mario.render(text, {foo:'bar'});
-  expect(s).toBe("test bar test");
-});
-
 it("renders just a tag", function() {
   var text = "{{string}}";
   var s = Mario.render(text, {string: "---" });
   expect(s).toBe("---");
+});
+
+it('renders when the tag is at the end', function() {
+  var text = "hello {{string}}";
+  var s = Mario.render(text, {string: "---" });
+  expect(s).toBe("hello ---");
+});
+
+it('renders when the tag is at the beginning', function() {
+  var text = "{{string}} |||";
+  var s = Mario.render(text, {string: "---" });
+  expect(s).toBe("--- |||");
+});
+
+it("renders one tag surrounded by text", function() {
+  var text = "test {{foo}} test";
+  var s = Mario.render(text, {foo:'bar'});
+  expect(s).toBe("test bar test");
 });
 
 it("elminates whitespace inside the tag", function() {
@@ -29,7 +41,7 @@ it("preserves white space outside the tag", function() {
   expect(s).toBe("  ---\n");
 });
 
-describe('Rendering multiple tags', function() {
+describe('Rendering multiple tags with basic types', function() {
   it("many string variables render correctly", function() {
     var text = "test {{foo}} test {{bar}} test {{baz}} test {{foo}} test";
     var s = Mario.render(text, {foo:'42', bar: '43', baz: '44'});

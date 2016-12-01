@@ -44,22 +44,4 @@ describe('Scanner, compiling', function() {
       expect(scanner.disassembly[2]).toEqual(' world!');
     });
   });
-
-  describe('when there is just one tag', function() {
-    var scanner, template;
-
-    beforeEach(function () {
-      template = "{{big_dreams}}";
-      scanner = new Mario.Scanner(template);
-      scanner.compile();
-    });
-
-    it('tag length is correct', function () {
-      expect(scanner.tags.length).toEqual(1);
-    });
-
-    it('the disassembly has one parts', function () {
-      expect(scanner.disassembly.length).toEqual(3);
-    });
-  });
 });
