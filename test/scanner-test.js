@@ -27,7 +27,7 @@ describe('Scanner, compiling', function() {
       scanner.compile();
     });
 
-    it('there is one tag', function () {
+    it('tag length is right', function () {
       expect(scanner.tags.length).toEqual(1);
     });
 
@@ -42,6 +42,24 @@ describe('Scanner, compiling', function() {
     it('divides the non tag text correctly', function() {
       expect(scanner.disassembly[0]).toEqual('hello ');
       expect(scanner.disassembly[2]).toEqual(' world!');
+    });
+  });
+
+  describe('when there is just one tag', function() {
+    var scanner, template;
+
+    beforeEach(function () {
+      template = "{{big_dreams}}";
+      scanner = new Mario.Scanner(template);
+      scanner.compile();
+    });
+
+    it('tag length is correct', function () {
+      expect(scanner.tags.length).toEqual(1);
+    });
+
+    it('the disassembly has one parts', function () {
+      expect(scanner.disassembly.length).toEqual(3);
     });
   });
 });

@@ -1,0 +1,71 @@
+// Tests mostly taken from Hogan.js and adapted to jasmine
+// Hogan.js has an extensive end-to-end test suite for mustachery!
+it("renders just text", function() {
+  var text = "test";
+  expect(Mario.render(text)).toBe(text);
+});
+
+it("renders one tag surrounded by text", function() {
+  var text = "test {{foo}} test";
+  var s = Mario.render(text, {foo:'bar'});
+  expect(s).toBe("test bar test");
+});
+
+it("renders just a tag", function() {
+  var text = "{{string}}";
+  var s = Mario.render(text, {string: "---" });
+  expect(s).toBe("---");
+});
+
+it("elminates whitespace inside the tag", function() {
+  var text = "{{ string }}";
+  var s = Mario.render(text, {string: "---" });
+  expect(s).toBe("---");
+});
+
+it("preserves white space outside the tag", function() {
+  var text = "  {{string}}\n";
+  var s = Mario.render(text, {string: "---" });
+  expect(s).toBe("  ---\n");
+});
+
+describe('Rendering multiple tags', function() {
+  it("many string variables render correctly", function() {
+    var text = "test {{foo}} test {{bar}} test {{baz}} test {{foo}} test";
+    var s = Mario.render(text, {foo:'42', bar: '43', baz: '44'});
+    expect(s).toBe("test 42 test 43 test 44 test 42 test");
+  });
+
+  it("many numeric variable render correctly", function() {
+    var text = "integer: {{foo}} float: {{bar}} negative: {{baz}}";
+    var s = Mario.render(text, {foo: 42, bar: 42.42, baz: -42});
+    expect(s).toBe( "integer: 42 float: 42.42 negative: -42");
+  });
+});
+
+describe('rendering non-string and non-numerics', function() {
+  it('rendering a plain object is dissatisfying', function() {
+    var text = "object: {{foo}}";
+    var s = Mario.render(text, {foo: {}});
+    expect(s).toBe("object: [object Object]");
+  });
+
+  it('rendering an objuct with a toString capability', function() {
+    var text = "object: {{foo}}";
+    var view = {foo: {toString: function(){ return "yo!"; }}};
+    var s = Mario.render(text, view);
+    expect(s).toBe( "object: yo!");
+  });
+
+  it('rendering an array uses default toString behavior', function() {
+    var text = "array: {{foo}}";
+    var s = Mario.render(text, {foo: ["a","b","c"]});
+    expect(s).toBe("array: a,b,c");
+  });
+
+  xit('renders nested attributes with a dot', function() {
+    var text = "nested: {{foo.bar}}";
+    var s = Mario.render(text, {foo: {bar: 'ohai!'}});
+    expect(s).toBe("nested: ohai!");
+  });
+});
