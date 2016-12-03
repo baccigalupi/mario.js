@@ -53,7 +53,7 @@ Mario.Scanner.prototype.processToken = function processToken() {
 };
 
 Mario.Scanner.prototype.addTag = function addTag(nextPart) {
-  var tagContent = nextPart.replace(/\W/g, '');
+  var tagContent = nextPart.replace(/\s/g, '');
   this.tags.push({
     name: tagContent,
     index: this.disassembly.length
@@ -93,23 +93,53 @@ Mario.RenderEngine.prototype.run = function run() {
 };
 
 Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  var rawValue = this.view[tag.name]
-  this.content[tag.index] = this.evaluate(rawValue);
+  this.content[tag.index] = new Mario.Variable(tag.name, this.view).evaluate(); //this.evaluate(rawValue);
 };
 
-Mario.RenderEngine.prototype.evaluate = function evaluate(value) {
-  let normalized = this.handleFunction(value);
-  if (!normalized && normalized !== '') {
-    normalized = this.stripFalseyValues(value);
-  }
-  return normalized;
-};
-
-Mario.RenderEngine.prototype.handleFunction = function(value) {
-  if (!(Object.prototype.toString.call(value) === '[object Function]')) { return; }
-  return this.stripFalseyValues(value());
+Mario.Variable = function(key, view) {
+  this.key = key;
+  this.view = view;
+  this.value = view[key];
 }
 
-Mario.RenderEngine.prototype.stripFalseyValues = function stripFalseyValues(value) {
-  return value ? value : '';
+Mario.Variable.prototype.evaluate = function evaluate() {
+  if (this.isComplexKey()) {
+    this.nestedValue();
+  } else if (this.isLambda()) {
+    this.lambdaValue();
+  } else {
+    this.stripFalseyValues();
+  }
+  return this.value;
+}
+
+Mario.Variable.prototype.isComplexKey = function isComplexKey() {
+  var keys = this.key.split('.');
+  this.complexKey = keys;
+  return !!(keys.length - 1);
+}
+
+Mario.Variable.prototype.nestedValue = function nestedValue() {
+  var length = this.complexKey.length;
+  var i;
+  var temp = this.view;
+  for (i = 0; i < length; i++) {
+    if (temp) {
+      temp = temp[this.complexKey[i]]
+    }
+  }
+  this.value = temp;
+}
+
+Mario.Variable.prototype.isLambda = function isLambda() {
+  return Object.prototype.toString.call(this.value) === '[object Function]';
+}
+
+Mario.Variable.prototype.lambdaValue = function lambdaValue() {
+  this.value = this.value();
+  this.stripFalseyValues();
+}
+
+Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {
+  this.value = this.value || '';
 }
