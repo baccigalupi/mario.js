@@ -33,6 +33,7 @@ var falseyValues = {
   'null': null,
   'false': false
 };
+
 Object.keys(falseyValues).forEach(function (key) {
   it("omits values: " + key, function() {
     var text = 'foo{{bar}}baz';

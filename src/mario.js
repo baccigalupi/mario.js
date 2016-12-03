@@ -1,7 +1,10 @@
 var Mario = {
   render: function(template, view, partials) {
     var scanner = this.cache[template];
-    if (!scanner) { scanner = new Mario.Scanner(template); }
+    if (!scanner) {
+      scanner = new Mario.Scanner(template);
+      this.cache[template] = scanner;
+    }
     return new Mario.RenderEngine(scanner, view, partials).run();
   },
   delimiters: ['{{', '}}'],
@@ -93,7 +96,7 @@ Mario.RenderEngine.prototype.run = function run() {
 };
 
 Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  this.content[tag.index] = new Mario.Variable(tag.name, this.view).evaluate(); //this.evaluate(rawValue);
+  this.content[tag.index] = new Mario.Variable(tag.name, this.view).evaluate();
 };
 
 Mario.Variable = function(key, view) {
