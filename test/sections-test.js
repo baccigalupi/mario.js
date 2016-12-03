@@ -102,3 +102,49 @@ describe('Negative sections - sections that render when the view key is false-y 
     expect(rendered).toEqual('It is not true.');
   });
 });
+
+describe('array sections', function() {
+  it('an empty array is falsey', function() {
+    var view = {numbers: []};
+    var template = "{{#numbers}}<li>{{n}}</li>{{/numbers}}";
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('');
+  });
+
+  it('an empty array is falsey and renders the negative section', function() {
+    var view = {numbers: []};
+    var template = "{{#numbers}}<li>{{n}}</li>{{/numbers}}{{^numbers}}Oh, nothing to count{{/numbers}}";
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('Oh, nothing to count');
+  });
+
+  it('renders each element as a section', function() {
+    var view = {numbers: [{n: 1}, {n: 2}]};
+    var template = "{{#numbers}}<li>{{n}}</li>{{/numbers}}{{^numbers}}Oh, nothing to count{{/numbers}}";
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('<li>1</li><li>2</li>');
+  });
+
+  it('works with implicit values in arrays', function() {
+    var view = {numbers: [1,2]};
+    var template = "{{#numbers}}<li>{{.}}</li>{{/numbers}}{{^numbers}}Oh, nothing to count{{/numbers}}";
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('<li>1</li><li>2</li>');
+  });
+
+  it('rendering an array of partials', function() {
+    var view = {numbers: [{n: 1}, {n: 2}]};
+    var partials = {number: '<li>{{n}}</li>'};
+    var template = "{{#numbers}}{{>number}}{{/numbers}} === {{#numbers}}<li>{{n}}</li>{{/numbers}}";
+    var rendered = Mario.render(template, view, partials);
+    expect(rendered).toEqual('<li>1</li><li>2</li> === <li>1</li><li>2</li>');
+  });
+
+  it('rendering an array of partials with implicits', function() {
+    var view = {numbers: [1,2]};
+    var partials = {number: '<li>{{.}}</li>'};
+    var template = "{{#numbers}}{{>number}}{{/numbers}} === {{#numbers}}<li>{{.}}</li>{{/numbers}}";
+    var rendered = Mario.render(template, view, partials);
+    expect(rendered).toEqual('<li>1</li><li>2</li> === <li>1</li><li>2</li>');
+  });
+});

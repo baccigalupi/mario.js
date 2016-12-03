@@ -14,10 +14,7 @@ var Mario = {
   },
 
   delimiters: ['{{', '}}'],
-  cache: {},
-  hasValue: function(value) {
-    return !value && value !== 0;
-  }
+  cache: {}
 };
 
 Mario.Scanner = function(template) {
@@ -119,6 +116,7 @@ Mario.Variable = function(key, view) {
   this.key = key;
   this.view = view;
   this.value = view[key];
+  if (key === '.') { this.value = view; }
 }
 
 Mario.Variable.prototype.evaluate = function evaluate() {
@@ -134,7 +132,9 @@ Mario.Variable.prototype.evaluate = function evaluate() {
   return this.value;
 }
 
+
 Mario.Variable.prototype.isComplexKey = function isComplexKey() {
+  if (this.key === '.') { return false; }
   var keys = this.key.split('.');
   this.complexKey = keys;
   return !!(keys.length - 1);
@@ -216,14 +216,36 @@ Mario.Tag.prototype.partial = function renderPartial(view, partials) {
   return rendeded || '';
 }
 
-Mario.Tag.prototype.section = function renderSection(fullView, partials) {
+Mario.Tag.prototype.sectionView = function sectionView(fullView, partials) {
   var view = this.evaluation(fullView, partials);
-  if (!view) { return ''; }
-  return this.disassembly.render(view, partials);
+  if (Array.isArray(view) && !view.length) { return false; }
+  return view;
 }
 
+Mario.Tag.prototype.section = function renderSection(fullView, partials) {
+  var view = this.sectionView(fullView, partials);
+  if (!view) { return ''; }
+  var content;
+  if (Array.isArray(view)) {
+    content = this.renderArraySection(view, partials);
+  } else {
+    content = this.disassembly.render(view, partials)
+  }
+  return content;
+}
+
+Mario.Tag.prototype.renderArraySection = function renderArraySection(view, partials) {
+  var content = [];
+  var length = view.length;
+  var i;
+  for (i = 0; i < length; i++) {
+    content.push(this.disassembly.render(view[i], partials));
+  }
+  return content.join('');
+};
+
 Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials) {
-  var view = this.evaluation(fullView, partials);
+  var view = this.sectionView(fullView, partials);
   if (view) { return ''; }
   return this.disassembly.render(fullView, partials);
 }
