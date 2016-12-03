@@ -105,7 +105,9 @@ Mario.Variable = function(key, view) {
 Mario.Variable.prototype.evaluate = function evaluate() {
   if (this.isComplexKey()) {
     this.nestedValue();
-  } else if (this.isLambda()) {
+  }
+
+  if (this.isLambda()) {
     this.lambdaValue();
   } else {
     this.stripFalseyValues();
@@ -141,5 +143,7 @@ Mario.Variable.prototype.lambdaValue = function lambdaValue() {
 }
 
 Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {
-  this.value = this.value || '';
+  if (!this.value && this.value !== 0) {
+    this.value = '';
+  }
 }
