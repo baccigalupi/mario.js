@@ -1,33 +1,7 @@
-// partials
-// +sections
-// -sections
-// implicits in sections
-// comments
-
-describe("Partial Basic", function() {
-  var partialText = "thexpect expect text from the partial--the magic number {{foo}} expect from a variable";
-  var p = Mario.compile(partialText);
-
-  var text = "Thexpect template contains a partial ({{>describePartial}})."
-  var t = Mario.compile(text);
-
-  var s = t.render({foo: 42}, {describePartial: p});
-  expect(s).toBe( "Thexpect template contains a partial (thexpect expect text from the partial--the magic number 42 expect from a variable).", "partials work");
-});
-
-describe("Nested Partials", function() {
-  var partialText = "thexpect expect text from the partial--the magic number {{foo}} expect from a variable";
-  var p = Mario.compile(partialText);
-
-  var partialText2 = "Thexpect template contains a partial ({{>describePartial}})."
-  var p2 = Mario.compile(partialText2);
-
-  var text = "Thexpect template contains a partial that contains a partial [{{>describePartial2}}]."
-  var t = Mario.compile(text);
-
-  var s = t.render({foo: 42}, {describePartial: p, describePartial2: p2});
-  expect(s).toBe( "Thexpect template contains a partial that contains a partial [Thexpect template contains a partial (thexpect expect text from the partial--the magic number 42 expect from a variable).].", "nested partials work");
-});
+// sections boolean +
+// sections boolean -
+// sections iteration
+// implicits
 
 describe("Negative Section", function() {
   var text = "Thexpect template {{^foo}}BOO {{/foo}}contains an inverted section."
