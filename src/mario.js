@@ -1,7 +1,7 @@
 var Mario = {
   render: function(template, view, partials) {
     var scanner = this.scan(template);
-    return new Mario.RenderEngine(scanner, view, partials).run();
+    return scanner.render(view, partials);
   },
 
   scan: function(template) {
@@ -19,8 +19,8 @@ var Mario = {
 
 Mario.Scanner = function(template) {
   this.template       = template;
-  this.disassembly    = [];
-  this.tags           = [];
+  this.disassembly         = new Mario.Disassembly();
+
   this.cursor         = 0;
   this.delimiterIndex = 0;
   this.compiled       = false;
@@ -52,23 +52,13 @@ Mario.Scanner.prototype.processToken = function processToken() {
   }
 
   if (this.delimiterIndex) {
-    this.addTag(nextPart);
+    this.disassembly.addTag(nextPart);
   } else {
-    this.addText(nextPart);
+    this.disassembly.addText(nextPart);
   }
 
   this.cursor = nextCursor;
   this.flipDelimiter();
-};
-
-Mario.Scanner.prototype.addTag = function addTag(nextPart) {
-  var tagContent = nextPart.replace(/\s/g, '');
-  this.tags.push(new Mario.Tag(tagContent, this.disassembly.length));
-  this.disassembly.push('');
-};
-
-Mario.Scanner.prototype.addText = function addText(nextPart) {
-  this.disassembly.push(nextPart);
 };
 
 Mario.Scanner.prototype.delimiter = function delimiter() {
@@ -79,27 +69,12 @@ Mario.Scanner.prototype.flipDelimiter = function flipDelimiter() {
   this.delimiterIndex = (this.delimiterIndex + 1) % 2;
 };
 
-Mario.RenderEngine = function(scanner, view, partials) {
-  this.scanner  = scanner;
-  this.view     = view || {};
-  this.partials = partials || {};
-};
-
-Mario.RenderEngine.prototype.run = function run() {
-  this.scanner.compile();
-  this.content  = this.scanner.disassembly.slice(0);
-
-  var tags = this.scanner.tags;
-  var tagLength = tags.length;
-  var i;
-  for (i = 0; i < tagLength; i++) {
-    this.substitute(tags[i]);
-  }
-  return this.content.join('');
-};
-
-Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  this.content[tag.index] = tag.render(this.view, this.partials);
+Mario.Scanner.prototype.render = function render(view, partials) {
+  this.compile();
+  view = view || {};
+  partials = partials || {};
+  var content = this.disassembly.render(view, partials);
+  return content.join('');
 };
 
 Mario.Variable = function(key, view) {
@@ -196,3 +171,34 @@ Mario.Tag.prototype.partial = function evalutatePartial(view, partials) {
   }
   return rendeded || '';
 }
+
+Mario.Disassembly = function() {
+  this.texts = [];
+  this.tags = [];
+}
+
+Mario.Disassembly.prototype.addText = function addText(text) {
+  this.texts.push(text);
+}
+
+Mario.Disassembly.prototype.addTag = function addTag(nextPart) {
+  var tagContent = nextPart.replace(/\s/g, '');
+  this.tags.push(new Mario.Tag(tagContent, this.texts.length));
+  this.texts.push('');
+}
+
+Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) {
+  var content  = this.texts.slice(0);
+  var tagLength = this.tags.length;
+  var i;
+  for (i = 0; i < tagLength; i++) {
+    this.substitute(content, this.tags[i], view, partials);
+  }
+  return content;
+}
+
+Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
+  content[tag.index] = tag.render(view, partials);
+};
+
+
