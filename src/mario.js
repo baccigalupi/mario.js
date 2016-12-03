@@ -1,12 +1,18 @@
 var Mario = {
   render: function(template, view, partials) {
+    var scanner = this.scan(template);
+    return new Mario.RenderEngine(scanner, view, partials).run();
+  },
+
+  scan: function(template) {
     var scanner = this.cache[template];
     if (!scanner) {
       scanner = new Mario.Scanner(template);
       this.cache[template] = scanner;
     }
-    return new Mario.RenderEngine(scanner, view, partials).run();
+    return scanner;
   },
+
   delimiters: ['{{', '}}'],
   cache: {}
 };
@@ -57,10 +63,7 @@ Mario.Scanner.prototype.processToken = function processToken() {
 
 Mario.Scanner.prototype.addTag = function addTag(nextPart) {
   var tagContent = nextPart.replace(/\s/g, '');
-  this.tags.push({
-    name: tagContent,
-    index: this.disassembly.length
-  });
+  this.tags.push(new Mario.Tag(tagContent, this.disassembly.length));
   this.disassembly.push('');
 };
 
@@ -96,7 +99,7 @@ Mario.RenderEngine.prototype.run = function run() {
 };
 
 Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  this.content[tag.index] = new Mario.Variable(tag.name, this.view).evaluate();
+  this.content[tag.index] = tag.render(this.view);
 };
 
 Mario.Variable = function(key, view) {
@@ -149,4 +152,23 @@ Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {
   if (!this.value && this.value !== 0) {
     this.value = '';
   }
+}
+
+Mario.Tag = function(name, index) {
+  this.index = index;
+  this.name = name;
+  this.type = this.determineType();
+}
+
+Mario.Tag.prototype.determineType = function determineType() {
+  return {
+    '>': 0,
+    '#': 1,
+    '^': 2,
+    '/': 3
+  }[this.name[0]] || 4;
+};
+
+Mario.Tag.prototype.render = function renderTag(view, partials) {
+  return new Mario.Variable(this.name, view).evaluate();
 }
