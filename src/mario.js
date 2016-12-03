@@ -99,7 +99,7 @@ Mario.RenderEngine.prototype.run = function run() {
 };
 
 Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  this.content[tag.index] = tag.render(this.view);
+  this.content[tag.index] = tag.render(this.view, this.partials);
 };
 
 Mario.Variable = function(key, view) {
@@ -157,18 +157,42 @@ Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {
 Mario.Tag = function(name, index) {
   this.index = index;
   this.name = name;
-  this.type = this.determineType();
+  this.separateTypeFromName();
 }
+
+Mario.Tag.prototype.separateTypeFromName = function separateTypeFromName() {
+  this.type = this.determineType();
+  if (this.type !== 'evaluation') {
+    this.name = this.name.slice(1);
+  }
+};
 
 Mario.Tag.prototype.determineType = function determineType() {
   return {
-    '>': 0,
-    '#': 1,
-    '^': 2,
-    '/': 3
-  }[this.name[0]] || 4;
+    '>': 'partial',
+    '#': 'section',
+    '^': 'antiSection',
+    '/': 'closing'
+  }[this.name[0]] || 'evaluation';
 };
 
 Mario.Tag.prototype.render = function renderTag(view, partials) {
+  var rendered;
+  if (this.type === 'partial') {
+    rendered = this.partial(view, partials);
+  }
+  return rendered || this.evaluation(view, partials);
+};
+
+Mario.Tag.prototype.evaluation = function evaluation(view, partials) {
   return new Mario.Variable(this.name, view).evaluate();
+};
+
+Mario.Tag.prototype.partial = function evalutatePartial(view, partials) {
+  var partial = partials[this.name];
+  var rendeded;
+  if (partial) {
+    rendeded = Mario.render(partial, view, partials);
+  }
+  return rendeded || '';
 }
