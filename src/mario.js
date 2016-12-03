@@ -93,6 +93,23 @@ Mario.RenderEngine.prototype.run = function run() {
 };
 
 Mario.RenderEngine.prototype.substitute = function substitute(tag) {
-  this.content[tag.index] = this.view[tag.name];
+  var rawValue = this.view[tag.name]
+  this.content[tag.index] = this.evaluate(rawValue);
 };
 
+Mario.RenderEngine.prototype.evaluate = function evaluate(value) {
+  let normalized = this.handleFunction(value);
+  if (!normalized && normalized !== '') {
+    normalized = this.stripFalseyValues(value);
+  }
+  return normalized;
+};
+
+Mario.RenderEngine.prototype.handleFunction = function(value) {
+  if (!(Object.prototype.toString.call(value) === '[object Function]')) { return; }
+  return this.stripFalseyValues(value());
+}
+
+Mario.RenderEngine.prototype.stripFalseyValues = function stripFalseyValues(value) {
+  return value ? value : '';
+}

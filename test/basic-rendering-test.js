@@ -74,10 +74,4 @@ describe('rendering non-string and non-numerics', function() {
     var s = Mario.render(text, {foo: ["a","b","c"]});
     expect(s).toBe("array: a,b,c");
   });
-
-  xit('renders nested attributes with a dot', function() {
-    var text = "nested: {{foo.bar}}";
-    var s = Mario.render(text, {foo: {bar: 'ohai!'}});
-    expect(s).toBe("nested: ohai!");
-  });
 });

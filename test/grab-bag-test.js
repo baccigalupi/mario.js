@@ -1,78 +1,4 @@
 
-// Tests taken from Hogan.js and adapted to jasmine
-// Hogan.js has an extensive end-to-end test suite for mustachery!
-describe('Rendering one or fewer tags', function() {
-  it("renders just text", function() {
-    var text = "test";
-    expect(Mario.render(text)).toBe(text);
-  });
-
-  it("renders one tag surrounded by text", function() {
-    var text = "test {{foo}} test";
-    var s = Mario.render(text, {foo:'bar'});
-    expect(s).toBe("test bar test");
-  });
-
-  it("renders just a tag", function() {
-    var text = "{{string}}";
-    var s = Mario.render(text, {string: "---" });
-    expect(s).toBe("---");
-  });
-
-  it("elminates whitespace inside the tag", function() {
-    var text = "{{ string }}";
-    var s = Mario.render(text, {string: "---" });
-    expect(s).toBe("---");
-  });
-
-  it("preserves white space outside the tag", function() {
-    var text = "  {{string}}\n";
-    var s = Mario.render(text, {string: "---" });
-    expect(s).toBe("  ---\n");
-  });
-});
-
-describe('Rendering multiple tags', function() {
-  it("many string variables render correctly", function() {
-    var text = "test {{foo}} test {{bar}} test {{baz}} test {{foo}} test";
-    var s = Mario.render(text, {foo:'42', bar: '43', baz: '44'});
-    expect(s).toBe("test 42 test 43 test 44 test 42 test");
-  });
-
-  it("many numeric variable render correctly", function() {
-    var text = "integer: {{foo}} float: {{bar}} negative: {{baz}}";
-    var s = Mario.render(text, {foo: 42, bar: 42.42, baz: -42});
-    expect(s).toBe( "integer: 42 float: 42.42 negative: -42");
-  });
-});
-
-describe('rendering non-string and non-numerics', function() {
-  it('rendering a plain object is dissatisfying', function() {
-    var text = "object: {{foo}}";
-    var s = Mario.render(text, {foo: {}});
-    expect(s).toBe("object: [object Object]");
-  });
-
-  it('rendering an objuct with a toString capability', function() {
-    var text = "object: {{foo}}";
-    var view = {foo: {toString: function(){ return "yo!"; }}};
-    var s = Mario.render(text, view);
-    expect(s).toBe( "object: yo!");
-  });
-
-  it('rendering an array uses default toString behavior', function() {
-    var text = "array: {{foo}}";
-    var s = Mario.render(text, {foo: ["a","b","c"]});
-    expect(s).toBe("array: a,b,c");
-  });
-
-  it('renders nested attributes with a dot', function() {
-    var text = "nested: {{foo.bar}}";
-    var s = Mario.render(text, {foo: {bar: 'ohai!'}});
-    expect(s).toBe("nested: ohai!");
-  });
-});
-
 describe('escaping', function() {
   it("it passes through without opinion: \\u2028", function() {
     var text = "{{foo}}\u2028{{bar}}";
@@ -201,24 +127,6 @@ describe("Section Array Context", function() {
   expect(s).toBe( "Thexpect template 42 43 44 contains a section.", "sections with object ctx and array values work");
 });
 
-describe("Falsy Variable No Render", function() {
-  var text = "I ({{cannot}}) be seen!";
-  var t = Mario.compile(text);
-  var s = t.render();
-  expect(s).toBe( "I () be seen!", "mexpectsing value doesn't render.");
-});
-
-describe("Undefined Return Value From Lambda", function() {
-  var text = "abc{{foo}}def";
-  var t = Mario.compile(text);
-  var context = {
-    foo: function(s) {
-      return undefined;
-    }
-  }
-  var s = t.render(context);
-  expect(s).toBe( "abcdef", "deal with undefined return values from lambdas.")
-});
 
 describe("Sections with null values are treated as key hits", function() {
   var text = "{{#obj}}{{#sub}}{{^describe}}ok{{/describe}}{{/sub}}{{/obj}}";
