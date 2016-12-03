@@ -106,7 +106,12 @@ Mario.Scanner.prototype.render = function render(view, partials) {
   this.compile();
   view = view || {};
   partials = partials || {};
-  var content = this.disassembly().render(view, partials);
+  var content = [];
+  var length = this.disassemblies.length;
+  var i;
+  for (i = 0; i < length; i++) {
+    content.push(this.disassemblies[i].render(view, partials));
+  }
   return content.join('');
 };
 
@@ -208,7 +213,8 @@ Mario.Tag.prototype.partial = function renderPartial(view, partials) {
 }
 
 Mario.Tag.prototype.section = function renderSection(fullView, partials) {
-  var view = fullView[this.name] || {};
+  var view = fullView[this.name];
+  if (!view) { return ''; }
   return this.disassembly.render(view, partials);
 }
 
@@ -235,7 +241,7 @@ Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) 
   for (i = 0; i < tagLength; i++) {
     this.substitute(content, this.tags[i], view, partials);
   }
-  return content;
+  return content.join('');
 }
 
 Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
