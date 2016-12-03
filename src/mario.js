@@ -14,7 +14,10 @@ var Mario = {
   },
 
   delimiters: ['{{', '}}'],
-  cache: {}
+  cache: {},
+  hasValue: function(value) {
+    return !value && value !== 0;
+  }
 };
 
 Mario.Scanner = function(template) {
@@ -63,19 +66,28 @@ Mario.Scanner.prototype.processToken = function processToken() {
 
 Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies(nextPart) {
   var tag = new Mario.Tag(nextPart);
-  var disassembly;
+  var currentDisassembly = this.disassembly();
   if (tag.type === 'section' || tag.type === 'antiSection') {
-    disassembly = new Mario.Disassembly(tag.name);
-    disassembly.addTag(tag);
-    this.disassemblies.push(disassembly);
-  } else if (tag.type === 'closing' && tag.name === this.disassembly().key) {
-    disassembly = this.disassemblies.pop();
-    let baseTag = disassembly.tags[0];
-    baseTag.disassembly = disassembly;
-    this.disassembly().addTag(baseTag);
+    this.startSection(tag);
+  } else if (tag.type === 'closing' && tag.name === currentDisassembly.key) {
+    this.endSection(tag);
   } else {
-    this.disassembly().addTag(tag);
+    currentDisassembly.addTag(tag);
   }
+};
+
+Mario.Scanner.prototype.startSection = function startSection(tag) {
+  var disassembly = new Mario.Disassembly(tag.name);
+  disassembly.addTag(tag);
+  this.disassemblies.push(disassembly);
+};
+
+Mario.Scanner.prototype.endSection = function endSection(tag) {
+  var disassembly = this.disassemblies.pop();
+  var baseTag = disassembly.tags[0];
+  disassembly.tags = disassembly.tags.slice(1);
+  baseTag.disassembly = disassembly;
+  this.disassembly().addTag(baseTag);
 };
 
 Mario.Scanner.prototype.disassembly = function disassembly(nextPart) {
@@ -176,6 +188,8 @@ Mario.Tag.prototype.render = function renderTag(view, partials) {
   var rendered;
   if (this.type === 'partial') {
     rendered = this.partial(view, partials);
+  } else if (this.type === 'section') {
+    rendered = this.section(view, partials);
   }
   return rendered || this.evaluation(view, partials);
 };
@@ -184,13 +198,18 @@ Mario.Tag.prototype.evaluation = function evaluation(view, partials) {
   return new Mario.Variable(this.name, view).evaluate();
 };
 
-Mario.Tag.prototype.partial = function evalutatePartial(view, partials) {
+Mario.Tag.prototype.partial = function renderPartial(view, partials) {
   var partial = partials[this.name];
   var rendeded;
   if (partial) {
     rendeded = Mario.render(partial, view, partials);
   }
   return rendeded || '';
+}
+
+Mario.Tag.prototype.section = function renderSection(fullView, partials) {
+  var view = fullView[this.name] || {};
+  return this.disassembly.render(view, partials);
 }
 
 Mario.Disassembly = function(key) {
