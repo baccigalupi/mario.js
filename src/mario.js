@@ -217,13 +217,13 @@ Mario.Tag.prototype.partial = function renderPartial(view, partials) {
 }
 
 Mario.Tag.prototype.section = function renderSection(fullView, partials) {
-  var view = fullView[this.name];
+  var view = this.evaluation(fullView, partials);
   if (!view) { return ''; }
   return this.disassembly.render(view, partials);
 }
 
 Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials) {
-  var view = fullView[this.name];
+  var view = this.evaluation(fullView, partials);
   if (view) { return ''; }
   return this.disassembly.render(fullView, partials);
 }

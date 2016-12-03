@@ -43,6 +43,26 @@ describe('affirmative boolean sections', function() {
       'It is cloudy and 77 degrees.'
     );
   });
+
+  it('renders when the key is a lambda', function() {
+    var view = {truth: function() {
+      return true
+    }};
+
+    var template = 'It is {{#truth}}true{{/truth}}{{^truth}}not true{{/truth}}.';
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('It is true.');
+  });
+
+  it('can use nested notation too', function() {
+    var view = {is: {truth: function() {
+      return true
+    }}};
+
+    var template = 'It is {{#is.truth}}true{{/is.truth}}{{^is.truth}}not true{{/is.truth}}.';
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('It is true.');
+  });
 });
 
 describe('Negative sections - sections that render when the view key is false-y or not present', function() {
@@ -60,5 +80,25 @@ describe('Negative sections - sections that render when the view key is false-y 
       "{{^person}}Sign in!{{/person}}";
     var rendered = Mario.render(template, view);
     expect(rendered).toBe('Hello Mario,');
+  });
+
+  it('renders when the key is a lambda', function() {
+    var view = {truth: function() {
+      return false
+    }};
+
+    var template = 'It is {{#truth}}true{{/truth}}{{^truth}}not true{{/truth}}.';
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('It is not true.');
+  });
+
+  it('can use nested notation too', function() {
+    var view = {is: {truth: function() {
+      return false
+    }}};
+
+    var template = 'It is {{#is.truth}}true{{/is.truth}}{{^is.truth}}not true{{/is.truth}}.';
+    var rendered = Mario.render(template, view);
+    expect(rendered).toEqual('It is not true.');
   });
 });
