@@ -195,8 +195,12 @@ Mario.Tag.prototype.render = function renderTag(view, partials) {
     rendered = this.partial(view, partials);
   } else if (this.type === 'section') {
     rendered = this.section(view, partials);
+  } else if (this.type === 'antiSection') {
+    rendered = this.antiSection(view, partials);
+  } else {
+    rendered = this.evaluation(view, partials);
   }
-  return rendered || this.evaluation(view, partials);
+  return rendered;
 };
 
 Mario.Tag.prototype.evaluation = function evaluation(view, partials) {
@@ -216,6 +220,12 @@ Mario.Tag.prototype.section = function renderSection(fullView, partials) {
   var view = fullView[this.name];
   if (!view) { return ''; }
   return this.disassembly.render(view, partials);
+}
+
+Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials) {
+  var view = fullView[this.name];
+  if (view) { return ''; }
+  return this.disassembly.render(fullView, partials);
 }
 
 Mario.Disassembly = function(key) {
