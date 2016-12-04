@@ -1,3 +1,5 @@
+(function(global) {
+'use strict';
 var Mario = {
   render: function(template, view, partials) {
     var scanner = this.compile(template);
@@ -278,3 +280,6 @@ Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) 
 Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
   content[tag.index] = tag.render(view, partials);
 };
+
+global.Mario = Mario;
+})(this);

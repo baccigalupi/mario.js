@@ -6,7 +6,13 @@
   "scripts": {
     "test": "open test/runner.html"
   },
-  "keywords": ["mustache", "small"],
+  "keywords": [
+    "mustache",
+    "micro"
+  ],
   "author": "baccigalupi",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jshint": "^2.9.4"
+  }
 }
