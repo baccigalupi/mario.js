@@ -2,7 +2,7 @@
   "name": "mario.js",
   "version": "0.1.0",
   "description": "A big mustaches on a small package",
-  "main": "index.js",
+  "main": "dist/mario-0.1.0-global.js",
   "scripts": {
     "test": "open test/runner.html"
   },
@@ -13,6 +13,8 @@
   "author": "baccigalupi",
   "license": "MIT",
   "devDependencies": {
-    "jshint": "^2.9.4"
+    "hogan.js": "^3.0.2",
+    "jshint": "^2.9.4",
+    "mustache": "^2.3.0"
   }
 }
