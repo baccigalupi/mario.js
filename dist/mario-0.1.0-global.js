@@ -16,7 +16,10 @@ var Mario = {
   },
 
   delimiters: ['{{', '}}'],
-  cache: {}
+  cache: {},
+  isFunction: function isLambda(value) {
+    return Object.prototype.toString.call(value) === '[object Function]';
+  }
 };
 
 Mario.Scanner = function(template) {
@@ -126,7 +129,7 @@ Mario.Variable.prototype.evaluate = function evaluate() {
     this.nestedValue();
   }
 
-  if (this.isLambda()) {
+  if (Mario.isFunction(this.value)) {
     this.lambdaValue();
   } else {
     this.stripFalseyValues();
