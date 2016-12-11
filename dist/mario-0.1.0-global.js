@@ -16,10 +16,7 @@ var Mario = {
   },
 
   delimiters: ['{{', '}}'],
-  cache: {},
-  isFunction: function isLambda(value) {
-    return Object.prototype.toString.call(value) === '[object Function]';
-  }
+  cache: {}
 };
 
 Mario.Scanner = function(template) {
@@ -125,15 +122,8 @@ Mario.Variable = function(key, view) {
 };
 
 Mario.Variable.prototype.evaluate = function evaluate() {
-  if (this.isComplexKey()) {
-    this.nestedValue();
-  }
-
-  if (Mario.isFunction(this.value)) {
-    this.lambdaValue();
-  } else {
-    this.stripFalseyValues();
-  }
+  if (this.isComplexKey()) { this.nestedValue(); }
+  this.stripFalseyValues();
   return this.value;
 };
 
@@ -154,15 +144,6 @@ Mario.Variable.prototype.nestedValue = function nestedValue() {
     }
   }
   this.value = temp;
-};
-
-Mario.Variable.prototype.isLambda = function isLambda() {
-  return Object.prototype.toString.call(this.value) === '[object Function]';
-};
-
-Mario.Variable.prototype.lambdaValue = function lambdaValue() {
-  this.value = this.value();
-  this.stripFalseyValues();
 };
 
 Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {

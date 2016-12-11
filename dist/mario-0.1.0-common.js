@@ -128,11 +128,7 @@ Mario.Variable.prototype.evaluate = function evaluate() {
     this.nestedValue();
   }
 
-  if (Mario.isFunction(this.value)) {
-    this.lambdaValue();
-  } else {
-    this.stripFalseyValues();
-  }
+  this.stripFalseyValues();
   return this.value;
 };
 
