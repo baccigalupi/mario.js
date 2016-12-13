@@ -15,7 +15,7 @@ var Mario = {
     return scanner;
   },
 
-  delimiters: ['{{', '}}'],
+  delimiters: ['{{', '}}', '}}}'],
   cache: {}
 };
 
@@ -41,29 +41,37 @@ Mario.Scanner.prototype.compile = function compile() {
 };
 
 Mario.Scanner.prototype.processToken = function processToken() {
-  var tail = this.template.slice(this.cursor);
+  var tail            = this.template.slice(this.cursor);
   var nextTagLocation = tail.indexOf(this.delimiter());
-  var nextCursor, nextPart;
 
-  if (nextTagLocation === -1) {
-    nextPart   = tail;
-    nextCursor = this.outOfRange;
-  } else {
-    nextPart   = tail.slice(0, nextTagLocation);
-    nextCursor = this.cursor + 2 + nextTagLocation;
+  var delimiterFound  = nextTagLocation !== -1;
+  var closingTag      = this.delimiterIndex > 0;
+  var addingTextNode  = !closingTag;
+
+  if (delimiterFound && closingTag) {
+    this.orchestrateDisassemblies(tail, nextTagLocation);
+    this.cursor = this.cursor + 2 + nextTagLocation;
+    this.flipDelimiter();
+  } else if (delimiterFound && addingTextNode) {
+    this.disassembly().addText(this.extractNextToken(tail, nextTagLocation));
+    this.cursor = this.cursor + 2 + nextTagLocation;
+    this.flipDelimiter();
+  } else if (closingTag) {
+    this.orchestrateDisassemblies(tail);
+    this.cursor = this.outOfRange;
+  } else { // adding text node
+    this.disassembly().addText(tail);
+    this.cursor = this.outOfRange;
   }
-
-  if (this.delimiterIndex) {
-    this.orchestrateDisassemblies(nextPart);
-  } else {
-    this.disassembly().addText(nextPart);
-  }
-
-  this.cursor = nextCursor;
-  this.flipDelimiter();
 };
 
-Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies(nextPart) {
+Mario.Scanner.prototype.extractNextToken = function extractNextToken(tail, location) {
+  if (location === undefined) { return tail; }
+  return tail.slice(0, location);
+};
+
+Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies(tail, location) {
+  var nextPart = this.extractNextToken(tail, location);
   var tag = new Mario.Tag(nextPart);
   var currentDisassembly = this.disassembly();
   if (tag.type === 'section' || tag.type === 'antiSection') {
@@ -99,6 +107,9 @@ Mario.Scanner.prototype.delimiter = function delimiter() {
 
 Mario.Scanner.prototype.flipDelimiter = function flipDelimiter() {
   this.delimiterIndex = (this.delimiterIndex + 1) % 2;
+  if (this.delimiterIndex === 1 && this.disassembly().unescaping()) {
+    this.delimiterIndex = 2;
+  }
 };
 
 Mario.Scanner.prototype.render = function render(view, partials) {
@@ -170,7 +181,8 @@ Mario.Tag.prototype.determineType = function determineType() {
     '>': 'partial',
     '#': 'section',
     '^': 'antiSection',
-    '/': 'closing'
+    '/': 'closing',
+    '{': 'unescaped'
   }[this.name[0]] || 'evaluation';
 };
 
@@ -182,14 +194,21 @@ Mario.Tag.prototype.render = function renderTag(view, partials) {
     rendered = this.section(view, partials);
   } else if (this.type === 'antiSection') {
     rendered = this.antiSection(view, partials);
-  } else {
+  } else if (this.type === 'unescaped') {
     rendered = this.evaluation(view);
+  } else {
+    rendered = this.escapedEvaluation(view);
   }
   return rendered;
 };
 
 Mario.Tag.prototype.evaluation = function evaluation(view) {
   return new Mario.Variable(this.name, view).evaluate();
+};
+
+Mario.Tag.prototype.escapedEvaluation = function escapedEvaluation(view) {
+  var value = new Mario.Variable(this.name, view).evaluate();
+  return this.escape(value);
 };
 
 Mario.Tag.prototype.partial = function renderPartial(view, partials) {
@@ -235,6 +254,28 @@ Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials)
   return this.disassembly.render(fullView, partials);
 };
 
+// Stolen mostly from Mustache.js!
+Mario.Tag.prototype.escape = function escapeHTML(value) {
+  if (value.toString) {
+    value = value.toString();
+  }
+
+  var entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+  };
+
+  return String(value).replace(/[&<>"'`=\/]/g, function fromEntityMap (s) {
+    return entityMap[s];
+  });
+};
+
 Mario.Disassembly = function(key) {
   this.key = key;
   this.texts = [];
@@ -242,7 +283,7 @@ Mario.Disassembly = function(key) {
 };
 
 Mario.Disassembly.prototype.addText = function addText(text) {
-  this.texts.push(text);
+  if (text.length) { this.texts.push(text); }
 };
 
 Mario.Disassembly.prototype.addTag = function addTag(tag) {
@@ -263,6 +304,11 @@ Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) 
 
 Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
   content[tag.index] = tag.render(view, partials);
+};
+
+Mario.Disassembly.prototype.unescaping = function unescaping() {
+  var tag = this.tags[this.tags.length - 1];
+  return tag && tag.type === 'unescaped';
 };
 
 global.Mario = Mario;

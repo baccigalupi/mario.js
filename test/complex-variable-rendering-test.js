@@ -1,20 +1,14 @@
 describe('rendering more complex data', function() {
   it('does not render lambdas', function() {
     var text = '{{functionalness}}!';
-    var s = Mario.render(text, {functionalness: function () { return 'ish'; }});
-    expect(s).toBe('function () { return \'ish\'; }!');
+    var s = Mario.render(text, {functionalness: function () {}});
+    expect(s).toBe('function () {}!');
   });
 
   it('renders nested attributes with a dot', function() {
     var text = 'nested: {{foo.bar}}';
     var s = Mario.render(text, {foo: {bar: 'ohai!'}});
     expect(s).toBe('nested: ohai!');
-  });
-
-  it('renders a nested attributes that is a lambda', function() {
-    var text = 'nested: {{foo.bar}}';
-    var s = Mario.render(text, {foo: {bar: function () { return 'ohai!'; }}});
-    expect(s).toBe('nested: function () { return \'ohai!\'; }');
   });
 
   it('without a view, leaves blank values', function() {
