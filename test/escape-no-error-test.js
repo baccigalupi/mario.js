@@ -32,7 +32,7 @@ describe('escaping', function() {
     expect(s).toBe( '{{what}}');
   });
 
-  xit('passes through unescaped with a triple stache', function() {
+  it('passes through unescaped with a triple stache', function() {
     var text = '{{{foo}}}';
     var s = Mario.render(text, {foo: '< > <div> \' \" &'});
     expect(s).toBe('< > <div> \' \" &');
