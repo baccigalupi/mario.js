@@ -44,39 +44,45 @@ Mario.Scanner.prototype.processToken = function processToken() {
   var tail            = this.template.slice(this.cursor);
   var nextTagLocation = tail.indexOf(this.delimiter());
 
-  var delimiterFound  = nextTagLocation !== -1;
-  var closingTag      = this.delimiterIndex > 0;
-  var addingTextNode  = !closingTag;
+  this.extractNextToken(tail, nextTagLocation);
+  this.addToken();
+  this.advanceCursor(nextTagLocation);
 
-  if (delimiterFound && closingTag) {
-    this.orchestrateDisassemblies(tail, nextTagLocation);
+  if (nextTagLocation >= 0) {
+    this.flipDelimiter(tail);
+  }
+};
+
+Mario.Scanner.prototype.extractNextToken = function extractNextToken(tail, location) {
+  if (location === undefined || location === -1) {
+    this.nextToken = tail;
+  } else {
+    this.nextToken = tail.slice(0, location);
+  }
+};
+
+Mario.Scanner.prototype.addToken = function addToken() {
+  if (this.delimiterIndex > 0) { // start of tag found, seeking ending
+    this.orchestrateDisassemblies();
+  } else {
+    this.addText();
+  }
+};
+
+Mario.Scanner.prototype.advanceCursor = function advanceCursor(nextTagLocation) {
+  if (nextTagLocation >= 0) {
     this.cursor = this.cursor + this.delimiter().length + nextTagLocation;
-    this.flipDelimiter(tail, nextTagLocation);
-  } else if (delimiterFound && addingTextNode) {
-    this.addText(tail, nextTagLocation);
-    this.cursor = this.cursor + this.delimiter().length + nextTagLocation;
-    this.flipDelimiter(tail, nextTagLocation);
-  } else if (closingTag) {
-    this.orchestrateDisassemblies(tail);
-    this.cursor = this.outOfRange;
-  } else { // adding text node
-    this.addText(tail);
+  } else {
     this.cursor = this.outOfRange;
   }
 };
 
-Mario.Scanner.prototype.addText = function(tail, nextTagLocation) {
-  this.disassembly().addText(this.extractNextToken(tail, nextTagLocation));
+Mario.Scanner.prototype.addText = function() {
+  this.disassembly().addText(this.nextToken);
 };
 
-Mario.Scanner.prototype.extractNextToken = function extractNextToken(tail, location) {
-  if (location === undefined) { return tail; }
-  return tail.slice(0, location);
-};
-
-Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies(tail, location) {
-  var nextPart = this.extractNextToken(tail, location);
-  var tag = new Mario.Tag(nextPart);
+Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies() {
+  var tag = new Mario.Tag(this.nextToken);
   var currentDisassembly = this.disassembly();
   if (tag.type === 'section' || tag.type === 'antiSection') {
     this.startSection(tag);
@@ -109,15 +115,14 @@ Mario.Scanner.prototype.delimiter = function delimiter() {
   return Mario.delimiters[this.delimiterIndex];
 };
 
-Mario.Scanner.prototype.flipDelimiter = function flipDelimiter(tail, nextTagLocation) {
-  var nextToken = this.extractNextToken(tail, nextTagLocation);
+Mario.Scanner.prototype.flipDelimiter = function flipDelimiter(tail) {
   if (this.delimiterIndex === 2 || this.delimiterIndex === 1) {
     this.delimiterIndex = 0;
   } else {
     this.delimiterIndex = 1;
   }
 
-  if (this.delimiterIndex === 1 && nextToken === '' && tail[2] === '{') {
+  if (this.delimiterIndex === 1 && this.nextToken === '' && tail[2] === '{') {
     this.delimiterIndex = 2;
   }
 };
@@ -132,7 +137,7 @@ Mario.Scanner.prototype.render = function render(view, partials) {
   for (i = 0; i < length; i++) {
     content.push(this.disassemblies[i].render(view, partials));
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Disassembly = function(key) {
@@ -158,7 +163,7 @@ Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) 
   for (i = 0; i < tagLength; i++) {
     this.substitute(content, this.tags[i], view, partials);
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
@@ -182,7 +187,7 @@ Mario.Variable.prototype.isComplexKey = function isComplexKey() {
   if (this.key === '.') { return false; }
   var keys = this.key.split('.');
   this.complexKey = keys;
-  return !!(keys.length - 1);
+  return keys.length - 1 ? true : false;
 };
 
 Mario.Variable.prototype.nestedValue = function nestedValue() {
@@ -285,7 +290,7 @@ Mario.Tag.prototype.renderArraySection = function renderArraySection(view, parti
   for (i = 0; i < length; i++) {
     content.push(this.disassembly.render(view[i], partials));
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials) {
@@ -301,14 +306,14 @@ Mario.Tag.prototype.escape = function escapeHTML(value) {
   }
 
   var entityMap = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
+    '&':  '&amp;',
+    '<':  '&lt;',
+    '>':  '&gt;',
+    '"':  '&quot;',
     '\'': '&#39;',
-    '/': '&#x2F;',
-    '`': '&#x60;',
-    '=': '&#x3D;'
+    '/':  '&#x2F;',
+    '`':  '&#x60;',
+    '=':  '&#x3D;'
   };
 
   return String(value).replace(/[&<>"'`=\/]/g, function fromEntityMap (s) {

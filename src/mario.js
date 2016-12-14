@@ -136,7 +136,7 @@ Mario.Scanner.prototype.render = function render(view, partials) {
   for (i = 0; i < length; i++) {
     content.push(this.disassemblies[i].render(view, partials));
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Disassembly = function(key) {
@@ -162,7 +162,7 @@ Mario.Disassembly.prototype.render = function renderDisassembly(view, partials) 
   for (i = 0; i < tagLength; i++) {
     this.substitute(content, this.tags[i], view, partials);
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Disassembly.prototype.substitute = function substituteTagContent(content, tag, view, partials) {
@@ -289,7 +289,7 @@ Mario.Tag.prototype.renderArraySection = function renderArraySection(view, parti
   for (i = 0; i < length; i++) {
     content.push(this.disassembly.render(view[i], partials));
   }
-  return content.join('');
+  return String.prototype.concat.apply('', content);
 };
 
 Mario.Tag.prototype.antiSection = function renderAntiSection(fullView, partials) {
@@ -305,14 +305,14 @@ Mario.Tag.prototype.escape = function escapeHTML(value) {
   }
 
   var entityMap = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
+    '&':  '&amp;',
+    '<':  '&lt;',
+    '>':  '&gt;',
+    '"':  '&quot;',
     '\'': '&#39;',
-    '/': '&#x2F;',
-    '`': '&#x60;',
-    '=': '&#x3D;'
+    '/':  '&#x2F;',
+    '`':  '&#x60;',
+    '=':  '&#x3D;'
   };
 
   return String(value).replace(/[&<>"'`=\/]/g, function fromEntityMap (s) {
