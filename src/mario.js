@@ -42,41 +42,46 @@ Mario.Scanner.prototype.compile = function compile() {
 Mario.Scanner.prototype.processToken = function processToken() {
   var tail            = this.template.slice(this.cursor);
   var nextTagLocation = tail.indexOf(this.delimiter());
-  this.nextToken      = this.extractNextToken(tail, nextTagLocation);
 
-  var delimiterFound  = nextTagLocation !== -1;
-  var closingTag      = this.delimiterIndex > 0;
-  var addingTextNode  = !closingTag;
+  this.extractNextToken(tail, nextTagLocation);
+  this.addToken();
+  this.advanceCursor(nextTagLocation);
 
-  if (delimiterFound && closingTag) {
-    this.orchestrateDisassemblies(tail, nextTagLocation);
+  if (nextTagLocation >= 0) {
+    this.flipDelimiter(tail);
+  }
+};
+
+Mario.Scanner.prototype.extractNextToken = function extractNextToken(tail, location) {
+  if (location === undefined || location === -1) {
+    this.nextToken = tail;
+  } else {
+    this.nextToken = tail.slice(0, location);
+  }
+};
+
+Mario.Scanner.prototype.addToken = function addToken() {
+  if (this.delimiterIndex > 0) { // start of tag found, seeking ending
+    this.orchestrateDisassemblies();
+  } else {
+    this.addText();
+  }
+};
+
+Mario.Scanner.prototype.advanceCursor = function advanceCursor(nextTagLocation) {
+  if (nextTagLocation >= 0) {
     this.cursor = this.cursor + this.delimiter().length + nextTagLocation;
-    this.flipDelimiter(tail, nextTagLocation);
-  } else if (delimiterFound && addingTextNode) {
-    this.addText(tail, nextTagLocation);
-    this.cursor = this.cursor + this.delimiter().length + nextTagLocation;
-    this.flipDelimiter(tail, nextTagLocation);
-  } else if (closingTag) {
-    this.orchestrateDisassemblies(tail);
-    this.cursor = this.outOfRange;
-  } else { // adding text node
-    this.addText(tail);
+  } else {
     this.cursor = this.outOfRange;
   }
 };
 
-Mario.Scanner.prototype.addText = function(tail, nextTagLocation) {
-  this.disassembly().addText(this.extractNextToken(tail, nextTagLocation));
+Mario.Scanner.prototype.addText = function() {
+  this.disassembly().addText(this.nextToken);
 };
 
-Mario.Scanner.prototype.extractNextToken = function extractNextToken(tail, location) {
-  if (location === undefined) { return tail; }
-  return tail.slice(0, location);
-};
-
-Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies(tail, location) {
-  var nextPart = this.extractNextToken(tail, location);
-  var tag = new Mario.Tag(nextPart);
+Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies() {
+  var tag = new Mario.Tag(this.nextToken);
   var currentDisassembly = this.disassembly();
   if (tag.type === 'section' || tag.type === 'antiSection') {
     this.startSection(tag);
@@ -181,7 +186,7 @@ Mario.Variable.prototype.isComplexKey = function isComplexKey() {
   if (this.key === '.') { return false; }
   var keys = this.key.split('.');
   this.complexKey = keys;
-  return !!(keys.length - 1);
+  return keys.length - 1 ? true : false;
 };
 
 Mario.Variable.prototype.nestedValue = function nestedValue() {

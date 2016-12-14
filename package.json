@@ -4,7 +4,8 @@
   "description": "A big mustaches on a small package",
   "main": "dist/mario-0.1.0-global.js",
   "scripts": {
-    "test": "open test/runner.html"
+    "test": "open test/runner.html",
+    "benchmark": "node --prof benchmarking/run-performance.js && node --prof-process isolate-*-v8.log > processed.txt"
   },
   "keywords": [
     "mustache",
