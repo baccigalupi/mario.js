@@ -83,9 +83,9 @@ Mario.Scanner.prototype.addText = function() {
 Mario.Scanner.prototype.orchestrateDisassemblies = function orchestrateDisassemblies() {
   var tag = new Mario.Tag(this.nextToken);
   var currentDisassembly = this.disassembly();
-  if (tag.type === 'section' || tag.type === 'antiSection') {
+  if (tag.type === 2 || tag.type === 3) {
     this.startSection(tag);
-  } else if (tag.type === 'closing' && tag.name === currentDisassembly.key) {
+  } else if (tag.type === 4 && tag.name === currentDisassembly.key) {
     this.endSection();
   } else {
     currentDisassembly.addTag(tag);
@@ -207,6 +207,37 @@ Mario.Variable.prototype.stripFalseyValues = function stripFalseyValues() {
   }
 };
 
+function evaluate(key, view) {
+  var value = view[key];
+  var isComplex;
+  var keys = [];
+
+  if (key === '.') {
+    value = view;
+    isComplex = false;
+  } else {
+    keys = key.split('.');
+    isComplex = keys.length - 1 ? true : false;
+  }
+
+  if (isComplex) {
+    var length = keys.length;
+    var i;
+    var temp = view;
+    for (i = 0; i < length; i++) {
+      if (temp) {
+        temp = temp[keys[i]];
+      }
+    }
+    value = temp;
+  }
+
+  if (!value && value !== 0) {
+    value = '';
+  }
+  return value;
+}
+
 Mario.Tag = function(name, index) {
   this.index = index;
   this.name = name.replace(/\s/g, '');
@@ -215,30 +246,30 @@ Mario.Tag = function(name, index) {
 
 Mario.Tag.prototype.separateTypeFromName = function separateTypeFromName() {
   this.type = this.determineType();
-  if (this.type !== 'evaluation') {
+  if (this.type !== 6) {
     this.name = this.name.slice(1);
   }
 };
 
 Mario.Tag.prototype.determineType = function determineType() {
   return {
-    '>': 'partial',
-    '#': 'section',
-    '^': 'antiSection',
-    '/': 'closing',
-    '{': 'unescaped'
-  }[this.name[0]] || 'evaluation';
+    '>': 1,
+    '#': 2,
+    '^': 3,
+    '/': 4,
+    '{': 5
+  }[this.name[0]] || 6;
 };
 
 Mario.Tag.prototype.render = function renderTag(view, partials) {
   var rendered;
-  if (this.type === 'partial') {
+  if (this.type === 1) {
     rendered = this.partial(view, partials);
-  } else if (this.type === 'section') {
+  } else if (this.type === 2) {
     rendered = this.section(view, partials);
-  } else if (this.type === 'antiSection') {
+  } else if (this.type === 3) {
     rendered = this.antiSection(view, partials);
-  } else if (this.type === 'unescaped') {
+  } else if (this.type === 5) {
     rendered = this.evaluation(view);
   } else {
     rendered = this.escapedEvaluation(view);
@@ -247,11 +278,13 @@ Mario.Tag.prototype.render = function renderTag(view, partials) {
 };
 
 Mario.Tag.prototype.evaluation = function evaluation(view) {
-  return new Mario.Variable(this.name, view).evaluate();
+  //return new Mario.Variable(this.name, view).evaluate();
+  return evaluate(this.name, view);
 };
 
 Mario.Tag.prototype.escapedEvaluation = function escapedEvaluation(view) {
-  var value = new Mario.Variable(this.name, view).evaluate();
+  //var value = new Mario.Variable(this.name, view).evaluate();
+  var value = evaluate(this.name, view);
   return this.escape(value);
 };
 
