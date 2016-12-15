@@ -5,7 +5,8 @@
   "main": "dist/mario-0.1.0-global.js",
   "scripts": {
     "test": "open test/runner.html",
-    "benchmark": "node --prof benchmarking/run-performance.js > stats.txt && node --prof-process isolate-*-v8.log > processed.txt"
+    "profile": "node --prof benchmarking/run-performance.js && node --prof-process isolate-*-v8.log > processed.txt",
+    "benchmark": "node benchmarking/run-all.js > stats.txt"
   },
   "keywords": [
     "mustache",

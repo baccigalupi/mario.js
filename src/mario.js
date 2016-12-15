@@ -304,18 +304,20 @@ Mario.Tag.prototype.escape = function escapeHTML(value) {
     value = value.toString();
   }
 
-  var entityMap = {
-    '&':  '&amp;',
-    '<':  '&lt;',
-    '>':  '&gt;',
-    '"':  '&quot;',
-    '\'': '&#39;',
-    '/':  '&#x2F;',
-    '`':  '&#x60;',
-    '=':  '&#x3D;'
-  };
+  return String(value).replace(Mario.Tag.escapeRegex, Mario.Tag.escape);
+};
 
-  return String(value).replace(/[&<>"'`=\/]/g, function fromEntityMap (s) {
-    return entityMap[s];
-  });
+Mario.Tag.escapeRegex = /[&<>"'`=\/]/g;
+Mario.Tag.escapeMap = {
+  '&':  '&amp;',
+  '<':  '&lt;',
+  '>':  '&gt;',
+  '"':  '&quot;',
+  '\'': '&#39;',
+  '/':  '&#x2F;',
+  '`':  '&#x60;',
+  '=':  '&#x3D;'
+};
+Mario.Tag.escape = function escape(value) {
+  return Mario.Tag.escapeMap[value];
 };
