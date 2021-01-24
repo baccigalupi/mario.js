@@ -1,8 +1,8 @@
 {
-  "name": "mario.js",
+  "name": "mario-client",
   "version": "0.1.0",
-  "description": "A big mustaches on a small package",
-  "main": "dist/mario-0.1.0-global.js",
+  "description": "The client companion for MarioServer, rendering mustache templates compiled in Mario.js format",
+  "main": "dist/mario-client-0.1.0-global.js",
   "scripts": {
     "test": "open test/runner.html",
     "profile": "node --prof benchmarking/run-performance.js && node --prof-process isolate-*-v8.log > processed.txt",
@@ -15,8 +15,10 @@
   "author": "baccigalupi",
   "license": "MIT",
   "devDependencies": {
+    "expect": "^1.20.2",
     "hogan.js": "^3.0.2",
     "jshint": "^2.9.4",
+    "mario-server": "git+https://github.com/baccigalupi/mario-server.git",
     "mustache": "^2.3.0"
   }
 }

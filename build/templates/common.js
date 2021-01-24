@@ -2,4 +2,4 @@
 
 module.exports = '\'use strict\';\n' +
 'YIELD\n' +
-'module.exports = Mario;\n';
+'module.exports = MarioClient;\n';
