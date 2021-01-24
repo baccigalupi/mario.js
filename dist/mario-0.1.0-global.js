@@ -1,5 +1,6 @@
 (function(global) {
 'use strict';
+
 var Mario = {
   render: function(template, view, partials) {
     var scanner = this.compile(template);

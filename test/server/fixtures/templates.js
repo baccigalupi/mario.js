@@ -1,0 +1,1 @@
+var MarioTemplates = [{"name":"foo/bar","tree":[{"texts":["<h2>BAR</h2>\n","","\n"],"tags":[{"index":1,"type":6,"name":"bar"}]}]},{"name":"foo/baz","tree":[{"texts":["<h2>BAZ</h2>\n"],"tags":[]}]},{"name":"foo/zardoz/foo-again","tree":[{"texts":["",", zardoz!\n"],"tags":[{"index":0,"type":6,"name":"greeting"}]}]},{"name":"foo","tree":[{"texts":["<h1>Foo</h1>\n"],"tags":[]}]}]
